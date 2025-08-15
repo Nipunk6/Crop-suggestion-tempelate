@@ -1,0 +1,39 @@
+{
+  "name": "quizapp",
+  "version": "1.0.0",
+  "description": "op project",
+  "keywords": [
+    "nodejs",
+    "mongoose"
+  ],
+  "license": "ISC",
+  "author": "Anupam Vinay",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon -r dotenv/config src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "child_process": "^1.0.2",
+    "cloudinary": "^2.6.1",
+    "cookie-parser": "^1.4.7",
+    "cookieparser": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1",
+    "mongoose-aggregate-paginate-v2": "^1.1.4",
+    "multer": "^2.0.0",
+    "path": "^0.12.7",
+    "url": "^0.11.4"
+  }
+}
