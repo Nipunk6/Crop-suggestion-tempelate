@@ -1,1 +1,1 @@
-export const DB_NAME ="CropP"
+export const DB_NAME ="vidtube"

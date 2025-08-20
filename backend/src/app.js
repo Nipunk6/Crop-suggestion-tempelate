@@ -4,7 +4,7 @@ import healthcheckrouter from './routes/healthcheck.router.js'
 import CookieParser from 'cookie-parser'
 import { errorHandler } from './middlewares/error.middlewear.js'
 import userRouter from './routes/user.routes.js'
-
+import cropPredictorRouter from "./routes/cropPredictor.routes.js";
 const app =express()
 app.use(cors({
     origin:process.env.CORS_ORIGIN,
@@ -19,7 +19,7 @@ app.use(CookieParser())
 
 
 
-
+app.use("/api/v1/crops", cropPredictorRouter);
 
 app.use(errorHandler)
 export {app}
