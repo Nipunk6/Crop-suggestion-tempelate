@@ -2,6 +2,7 @@
 import { ApiResponse } from "../utils/apiresponse.js";
 import { asynchandler } from "../utils/AsyncHandler.js";
 import axios from "axios";
+import { gemini } from "./geminiapi.js";
 
 const cropPredictor = asynchandler(async (req, res) => {
    
@@ -18,11 +19,20 @@ const cropPredictor = asynchandler(async (req, res) => {
             },
          }
       );
-      console.log("External API response data:", predictionResponse.json);
+     
       
       const prediction = predictionResponse.data["Predicted Crop"]; 
-
-      return res.status(200).json(new ApiResponse(200, prediction, "Crop prediction successful"));
+       console.log("External API response data:", prediction);
+        const geminiResponse=await gemini(prediction)
+        if(!geminiResponse)
+        {
+          throw new ApiError(404,"no data found")
+        }
+        const result={
+          "crop":prediction,
+          "info":geminiResponse
+        }
+      return res.status(200).json(new ApiResponse(200, result, "Crop prediction successful"));
 
    } catch (error) {
       console.error("Error fetching prediction from ML service:", error.message);
