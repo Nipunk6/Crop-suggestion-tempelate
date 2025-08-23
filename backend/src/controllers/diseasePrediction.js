@@ -33,7 +33,7 @@
 //       const detectedDisease = detectionResponse.data["prediction"]; 
 //       console.log("External ML API response data:", detectedDisease);
 
-//       const geminiResponse = await gemini(detectedDisease);
+//       const geminiResponse = await gemini2(detectedDisease);
 //       if(!geminiResponse) {
 //         throw new ApiResponse(404,"No additional information found from Gemini.");
 //       }
@@ -73,7 +73,7 @@
 import { ApiResponse } from "../utils/apiresponse.js";
 import { asynchandler } from "../utils/AsyncHandler.js";
 import axios from "axios";
-import { gemini } from "./geminiapi.js";
+import { gemini,gemini2 } from "./geminiapi.js";
 import FormData from "form-data";
 // import fs from "fs/promises"; // No longer needed for reading/deleting local files
 
@@ -118,7 +118,7 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
       console.log("External ML API response data:", detectedDisease);
 
       // 5. Send the detected disease to your Gemini API for additional information
-      const geminiResponse = await gemini(detectedDisease);
+      const geminiResponse = await gemini2(detectedDisease);
       if(!geminiResponse) {
         throw new ApiResponse(404,"No additional information found from Gemini.");
       }

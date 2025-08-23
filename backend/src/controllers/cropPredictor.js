@@ -2,7 +2,7 @@
 import { ApiResponse } from "../utils/apiresponse.js";
 import { asynchandler } from "../utils/AsyncHandler.js";
 import axios from "axios";
-import { gemini } from "./geminiapi.js";
+import { gemini,gemini2 } from "./geminiapi.js";
 
 const cropPredictor = asynchandler(async (req, res) => {
    
