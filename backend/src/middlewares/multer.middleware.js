@@ -1,26 +1,40 @@
 // import multer from "multer";
-// import path from "path";
 
+// //allowing disk storage
 // const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
+//   destination: (req, file, cb) => {
+//     //cb=callback
 //     cb(null, "./public/temp");
 //   },
-//   filename: function (req, file, cb) {
-//     const nameWithoutExt = path.parse(file.originalname).name;
-//     const timestamp = Date.now();
-//     cb(null, `${nameWithoutExt}_${timestamp}.png`);
-//   }
+//   filename: (req, file, cb) => {
+//     // const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+//     // cb(null, file.fieldname + "-" + uniqueSuffix + "-" + file.originalname);
+//     cb(null, file.originalname); // Using original name for simplicity
+//   },
 // });
 
-// export const upload = multer({ storage });
-
-// backend > src > middlewares > multer.middleware.js
-
+// export const upload = multer({
+//   storage,
+// });
 import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Configure Multer to store the entire file in memory as a Buffer
-const storage = multer.memoryStorage();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export const upload = multer({ storage: storage });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "../..", "public", "temp"); // Absolute path
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const extension = file.originalname.split(".").pop();
+    cb(null, `${file.fieldname}-${uniqueSuffix}.${extension}`); // Use unique filename
+  },
+});
 
-// No need for 'path' or 'fs' related logic here, as files are not written to disk
+export const upload = multer({
+  storage,
+});
