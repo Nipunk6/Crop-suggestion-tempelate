@@ -1,7 +1,7 @@
 import { ApiResponse } from "../utils/apiresponse.js";
 import { asynchandler } from "../utils/AsyncHandler.js";
 import axios from "axios";
-import { gemini } from "./geminiapi.js"; 
+import { gemini,gemini2 } from "./geminiapi.js"; 
 import FormData from "form-data";  
 import fs from "fs/promises";  
 import { uploadOnCloudinary } from "../utils/cloudinary.js"; 
@@ -17,17 +17,11 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
    console.log("Received file path:", localFilePath);
    try {
       const imageBuffer = await uploadOnCloudinary(localFilePath);
-      console.log("Uploaded image to Cloudinary:", imageBuffer);
-
-      // const formData = new FormData();
-      // formData.append('file', imageBuffer, {
-      //     filename: req.file.originalname, 
-      //     contentType: req.file.mimetype, 
-      // });
+   
 
       const detectionResponse = await axios.post(
-  "https://crop-prediction-api-0bj5.onrender.com/predict", 
-  imageBuffer.url,
+  "https://test-1-6-11nf.onrender.com/predict", 
+  { url: imageBuffer.url },
   {
      headers: { "Content-Type": "application/json" }
   }
@@ -46,7 +40,7 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
         "info": geminiResponse 
       }
 
-      return res.status(200).json(new ApiResponse(200, result, "Plant disease detection successful")); // Updated message
+      return res.status(200).json(new ApiResponse(200, result, "Plant disease detection successful"));
 
    } catch (error) {
       console.error("Error during plant disease detection from ML service:", error.message); 
@@ -54,7 +48,7 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
           console.error("Axios error response:", error.response?.data);
           console.error("Axios error status:", error.response?.status);
           console.error("Axios error headers:", error.response?.headers);
-          return res.status(error.response?.status || 500).json(new ApiResponse(error.response?.status || 500, null, error.response?.data?.message || "Failed to perform plant disease detection from external service.")); // Updated message
+          return res.status(error.response?.status || 500).json(new ApiResponse(error.response?.status || 500, null, error.response?.data?.message || "Failed to perform plant disease detection from external service.")); 
       }
       
       return res.status(500).json(new ApiResponse(500, null, "Failed to perform plant disease detection."));
@@ -71,5 +65,5 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
    }
 });
 
-export default plantDiseaseDetector; // Export the renamed function
+export default plantDiseaseDetector;
 

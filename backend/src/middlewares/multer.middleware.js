@@ -25,13 +25,13 @@ const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../..", "public", "temp"); // Absolute path
+    const uploadPath = path.join(__dirname, "../..", "public", "temp"); 
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const extension = file.originalname.split(".").pop();
-    cb(null, `${file.fieldname}-${uniqueSuffix}.${extension}`); // Use unique filename
+    cb(null, `${file.fieldname}-${uniqueSuffix}.${extension}`); 
   },
 });
 
