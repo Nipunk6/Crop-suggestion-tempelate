@@ -35,6 +35,7 @@
     "mongoose": "^8.15.1",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "multer": "^2.0.0",
+    "openai": "^6.3.0",
     "path": "^0.12.7",
     "url": "^0.11.4"
   }

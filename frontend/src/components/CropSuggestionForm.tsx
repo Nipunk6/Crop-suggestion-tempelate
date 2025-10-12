@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Thermometer, Droplets, Gauge } from "lucide-react";
+import { CropPrediction } from "@/backendfunctions/cropP";
 
 const CropSuggestionForm = () => {
   const [formData, setFormData] = useState({
@@ -20,21 +21,23 @@ const CropSuggestionForm = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    // Simulate AI analysis
-    setTimeout(() => {
-      const mockSuggestions = [
-        "Wheat - High yield potential for your soil type and climate",
-        "Rice - Suitable for monsoon season with current rainfall",
-        "Corn - Good market price and moderate water requirement",
-        "Sugarcane - Long-term crop with good profit margins"
-      ];
-      setSuggestions(mockSuggestions);
-      setLoading(false);
-    }, 2000);
-  };
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const predictor = new CropPrediction(); // ✅ Create instance
+    const response = await predictor.predictCrop(formData); // ✅ Call method
+
+    // response = { predictedCrop: "Wheat", confidenceScore: 0.92 }
+    setSuggestions([response.predictedCrop]); // ✅ Example: store in array to display
+  } catch (error) {
+    console.error("Error fetching crop prediction:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <section id="crops" className="py-16 bg-gradient-sky">
