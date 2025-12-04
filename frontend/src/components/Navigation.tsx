@@ -1,8 +1,29 @@
-import { Menu, X, Leaf, TrendingUp, Shield, FileText } from "lucide-react";
+import {
+  Menu,
+  X,
+  Leaf,
+  TrendingUp,
+  Shield,
+  FileText,
+  LogIn,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const Navigation = () => {
+// 1. Define the props we expect from App.tsx
+interface NavigationProps {
+  isAuthenticated: boolean;
+  onOpenLogin: () => void;
+  onLogout: () => void;
+}
+
+// 2. Accept these props in the component function
+const Navigation = ({
+  isAuthenticated,
+  onOpenLogin,
+  onLogout,
+}: NavigationProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
@@ -18,7 +39,9 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
             <Leaf className="w-8 h-8 text-primary-foreground" />
-            <span className="text-xl font-bold text-primary-foreground">FarmTech</span>
+            <span className="text-xl font-bold text-primary-foreground">
+              FarmTech
+            </span>
           </div>
 
           {/* Desktop Navigation */}
@@ -33,6 +56,29 @@ const Navigation = () => {
                 <span>{item.name}</span>
               </a>
             ))}
+
+            {/* ADDED: Login/Logout Button for Desktop */}
+            {isAuthenticated ? (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="bg-red-500 hover:bg-red-600 text-white ml-4"
+                onClick={onLogout}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-white text-green-700 hover:bg-gray-100 font-bold ml-4"
+                onClick={onOpenLogin}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -48,7 +94,7 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4">
+          <div className="md:hidden py-4 space-y-2">
             {navItems.map((item) => (
               <a
                 key={item.name}
@@ -60,6 +106,33 @@ const Navigation = () => {
                 <span>{item.name}</span>
               </a>
             ))}
+
+            {/* ADDED: Login/Logout Button for Mobile */}
+            <div className="pt-4 mt-2 border-t border-white/20">
+              {isAuthenticated ? (
+                <Button
+                  className="w-full bg-red-500 hover:bg-red-600 text-white justify-start"
+                  onClick={() => {
+                    onLogout();
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  Logout
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-white text-green-700 hover:bg-gray-100 justify-start"
+                  onClick={() => {
+                    onOpenLogin();
+                    setIsOpen(false);
+                  }}
+                >
+                  <LogIn className="w-5 h-5 mr-3" />
+                  Login
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>

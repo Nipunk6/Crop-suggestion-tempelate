@@ -1,60 +1,5 @@
-// import { v2 as cloudinary } from 'cloudinary';
-// import fs from 'fs';
-// import dotenv from 'dotenv';
-
-// import { ApiError } from './Apierror.js';
-
-
-
-
-// dotenv.config({
-//          path:"../.env"
-// });
-
-// // Cloudinary configuration
-// cloudinary.config({ 
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//     api_key:process.env.CLOUDINARY_API_KEY,
-//     api_secret: process.env.CLOUDINARY_API_SECRET
-// });
-
-// const uploadOnCloudinary = async (localFilePath) => {
-//     try {
-//         if (!localFilePath) return null;
-
- 
-//         const response = await cloudinary.uploader.upload(localFilePath, {
-//             resource_type: "auto"
-//         });
-
-       
-//         if (fs.existsSync(localFilePath)) {
-//             fs.unlinkSync(localFilePath);
-//         }
-
-//         return response;
-//     } catch (error) {
-        
-//           fs.existsSync(localFilePath) && fs.unlinkSync(localFilePath);
-
-      
-//         throw new ApiError(500, `Cloudinary upload failed: ${error.message}`);
-//     }
-// };
-
-// const deleteFronCloudinary = async (publicId) => {
-//     try {
-//         const res = await cloudinary.uploader.destroy(publicId);
-//         return res;
-//     } catch (error) {
-//         console.log("Can't delete from Cloudinary:", error);
-//         return null;
-//     }
-// };
-
-// export { uploadOnCloudinary, deleteFronCloudinary };
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import fs from "fs/promises";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -62,9 +7,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
-});
+// Load .env in development only — hosting envs should provide real env vars
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -72,33 +18,53 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+/**
+ * Upload a local file path to Cloudinary.
+ * Returns the Cloudinary response (contains secure_url and public_id).
+ * Throws an Error on failure.
+ */
 const uploadOnCloudinary = async (localFilePath) => {
+  if (!localFilePath) throw new Error("Local file path is required for upload");
+
   try {
-    if (!localFilePath) return null;
-    //upload the file on cloudinary
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
     });
-    // file has been uploaded successfull
-    //console.log("file is uploaded on cloudinary ", response.url);
-    fs.unlinkSync(localFilePath);
+
+    // remove the temporary local file (best-effort)
+    try {
+      await fs.unlink(localFilePath);
+    } catch (e) {
+      console.warn("Could not remove temp file after successful upload:", e.message);
+    }
+
+    // Return the Cloudinary response (has secure_url, public_id, etc.)
     return response;
   } catch (error) {
-    // Log the actual error that occurred during upload
-    console.error("Cloudinary Upload Failed:", error.message);
-    console.error("Cloudinary Error Details:", error);
-
-    // Attempt to remove the locally saved temporary file even if upload fails
-    if (fs.existsSync(localFilePath)) {
-      try {
-        fs.unlinkSync(localFilePath);
-        console.log(`Deleted temporary file after failed Cloudinary upload: ${localFilePath}`);
-      } catch (unlinkError) {
-        console.error(`Error deleting temporary file ${localFilePath} after Cloudinary failure:`, unlinkError.message);
-      }
+    // Attempt to remove local file even on failure
+    try {
+      if (localFilePath) await fs.unlink(localFilePath);
+    } catch (e) {
+      console.warn("Could not remove temp file after failed upload:", e.message);
     }
+
+    // Throw an Error so callers' try/catch branches run (controller expects exceptions)
+    const message = error?.message || "Cloudinary upload failed";
+    console.error("Cloudinary upload error:", message);
+    throw new Error(message);
+  }
+};
+
+/** Delete resource by public id (useful on rollback) */
+const deleteFromCloudinary = async (publicId) => {
+  if (!publicId) return null;
+  try {
+    const res = await cloudinary.uploader.destroy(publicId);
+    return res;
+  } catch (err) {
+    console.error("Cloudinary delete error:", err?.message || err);
     return null;
   }
 };
 
-export { uploadOnCloudinary };
+export { uploadOnCloudinary, deleteFromCloudinary };
