@@ -16,6 +16,7 @@ interface NavigationProps {
   isAuthenticated: boolean;
   onOpenLogin: () => void;
   onLogout: () => void;
+  requireAuth: (action: () => void) => void;
 }
 
 // 2. Accept these props in the component function

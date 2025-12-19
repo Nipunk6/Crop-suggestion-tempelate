@@ -1,43 +1,57 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MapPin, Thermometer, Droplets, Gauge } from "lucide-react";
 import { CropPrediction } from "@/backendfunctions/cropP";
-
-const CropSuggestionForm = () => {
+interface CropFormProps {
+  requireAuth: (action: () => void) => void;
+}
+const CropSuggestionForm = ({ requireAuth }: CropFormProps) => {
   const [formData, setFormData] = useState({
     location: "",
     soilType: "",
     rainfall: "",
     temperature: "",
     ph: "",
-    area: ""
+    area: "",
   });
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    requireAuth(async () => {
+      setLoading(true);
 
-  try {
-    const predictor = new CropPrediction(); // ✅ Create instance
-    const response = await predictor.predictCrop(formData); // ✅ Call method
+      try {
+        const predictor = new CropPrediction(); // ✅ Create instance
+        const response = await predictor.predictCrop(formData); // ✅ Call method
 
-    // response = { predictedCrop: "Wheat", confidenceScore: 0.92 }
-    setSuggestions([response.predictedCrop]); // ✅ Example: store in array to display
-  } catch (error) {
-    console.error("Error fetching crop prediction:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+        // response = { predictedCrop: "Wheat", confidenceScore: 0.92 }
+        setSuggestions([response.predictedCrop]); // ✅ Example: store in array to display
+      } catch (error) {
+        console.error("Error fetching crop prediction:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
+  };
 
   return (
     <section id="crops" className="py-16 bg-gradient-sky">
@@ -47,7 +61,8 @@ const CropSuggestionForm = () => {
             Smart Crop Suggestions
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Get personalized crop recommendations based on your land conditions, climate, and soil analysis.
+            Get personalized crop recommendations based on your land conditions,
+            climate, and soil analysis.
           </p>
         </div>
 
@@ -59,18 +74,24 @@ const CropSuggestionForm = () => {
                 Land Analysis Form
               </CardTitle>
               <CardDescription>
-                Provide details about your farmland to get accurate crop suggestions
+                Provide details about your farmland to get accurate crop
+                suggestions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
                   <Input
                     id="location"
                     placeholder="Enter your city/district"
                     value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -82,14 +103,20 @@ const CropSuggestionForm = () => {
                     type="number"
                     placeholder="Enter area in acres"
                     value={formData.area}
-                    onChange={(e) => setFormData({...formData, area: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, area: e.target.value })
+                    }
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="soilType">Soil Type</Label>
-                  <Select onValueChange={(value) => setFormData({...formData, soilType: value})}>
+                  <Select
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, soilType: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select soil type" />
                     </SelectTrigger>
@@ -116,7 +143,9 @@ const CropSuggestionForm = () => {
                     max="14"
                     placeholder="e.g., 6.5"
                     value={formData.ph}
-                    onChange={(e) => setFormData({...formData, ph: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, ph: e.target.value })
+                    }
                   />
                 </div>
 
@@ -130,12 +159,17 @@ const CropSuggestionForm = () => {
                     type="number"
                     placeholder="e.g., 800"
                     value={formData.rainfall}
-                    onChange={(e) => setFormData({...formData, rainfall: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, rainfall: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="temperature" className="flex items-center gap-2">
+                  <Label
+                    htmlFor="temperature"
+                    className="flex items-center gap-2"
+                  >
                     <Thermometer className="w-4 h-4" />
                     Avg. Temperature (°C)
                   </Label>
@@ -144,13 +178,15 @@ const CropSuggestionForm = () => {
                     type="number"
                     placeholder="e.g., 25"
                     value={formData.temperature}
-                    onChange={(e) => setFormData({...formData, temperature: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, temperature: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-gradient-primary hover:shadow-glow"
                     disabled={loading}
                   >
@@ -161,7 +197,9 @@ const CropSuggestionForm = () => {
 
               {suggestions.length > 0 && (
                 <div className="mt-8 p-6 bg-success/10 rounded-lg border border-success/20">
-                  <h3 className="text-lg font-semibold text-success mb-4">Recommended Crops for Your Land:</h3>
+                  <h3 className="text-lg font-semibold text-success mb-4">
+                    Recommended Crops for Your Land:
+                  </h3>
                   <ul className="space-y-2">
                     {suggestions.map((suggestion, index) => (
                       <li key={index} className="flex items-start gap-2">

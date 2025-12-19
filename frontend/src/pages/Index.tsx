@@ -7,8 +7,10 @@ import { TrendingUp, Leaf, Shield, Phone, Mail, MapPin } from "lucide-react";
 import cropIcon from "@/assets/crop-suggestion-icon.jpg";
 import diseaseIcon from "@/assets/plant-health-icon.jpg";
 import schemesIcon from "@/assets/government-schemes-icon.jpg";
-
-const Index = () => {
+interface IndexProps {
+  requireAuth: (action: () => void) => void;
+}
+const Index = ({ requireAuth }: IndexProps) => {
   const features = [
     {
       title: "Smart Crop Suggestions",
@@ -51,8 +53,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* <Navigation />  <-- REMOVED because App.tsx handles this now */}
-      
-      <HeroSection />
+
+      <HeroSection requireAuth={requireAuth} />
 
       {/* Features Overview */}
       <section className="py-16 bg-background">
@@ -75,8 +77,8 @@ const Index = () => {
         </div>
       </section>
 
-      <CropSuggestionForm />
-      <DiseaseDetection />
+      <CropSuggestionForm requireAuth={requireAuth} />
+      <DiseaseDetection requireAuth={requireAuth} />
       <GovernmentSchemes />
 
       {/* Footer */}

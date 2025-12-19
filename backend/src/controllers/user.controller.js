@@ -45,7 +45,7 @@ const registerUser = asynchandler(async (req, res) => {
   if (userPresent) {
     throw new ApiError(504, "user is already present");
   }
-  console.log(req.file)
+  console.log(req.file);
   let avatarFilepath = req.file?.path;
   console.log(avatarFilepath);
   if (req.file) console.log(`recieved ${avatarFilepath}`);

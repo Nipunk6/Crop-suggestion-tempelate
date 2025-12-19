@@ -9,8 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Upload, Camera, AlertCircle, CheckCircle } from "lucide-react";
 import { DiseasePrediction } from "../backendfunctions/diseaseP";
+
+interface DiseaseDetectionProps {
+  requireAuth: (action: () => void) => void;
+}
 const diseaseApi = new DiseasePrediction();
-const DiseaseDetection = () => {
+
+const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
@@ -34,20 +39,21 @@ const DiseaseDetection = () => {
 
   const analyzeImage = async () => {
     if (!imageFile) return;
+    requireAuth(async () => {
+      setLoading(true);
+      setError(null);
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      // 👇 CALL THE METHOD FROM THE INSTANCE
-      const response = await diseaseApi.predictDisease(imageFile);
-      setAnalysis(response.result);
-    } catch (err: any) {
-      setError(err.message || "Failed to analyze image. Please try again.");
-      console.error("Analysis Error:", err);
-    } finally {
-      setLoading(false);
-    }
+      try {
+        // 👇 CALL THE METHOD FROM THE INSTANCE
+        const response = await diseaseApi.predictDisease(imageFile);
+        setAnalysis(response.result);
+      } catch (err: any) {
+        setError(err.message || "Failed to analyze image. Please try again.");
+        console.error("Analysis Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   return (
