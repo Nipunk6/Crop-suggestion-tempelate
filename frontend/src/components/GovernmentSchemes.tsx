@@ -1,3 +1,5 @@
+import { useState } from "react";
+import axios from "axios";
 import {
   Card,
   CardContent,
@@ -7,9 +9,56 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, IndianRupee, Calendar, Users } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ExternalLink, IndianRupee, Calendar, Users, Send } from "lucide-react";
 
 const GovernmentSchemes = () => {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      from: "assistant",
+      text: "Hi! I can help you pick the right scheme, check eligibility, and share official links. How can I help?",
+    },
+  ]);
+
+  const sendMessage = async () => {
+    if (!input.trim() || chatLoading) return;
+    const userText = input.trim();
+    setMessages((prev) => [...prev, { from: "user", text: userText }]);
+    setInput("");
+    setChatLoading(true);
+
+    try {
+      const res = await axios.post("/api/v1/chat", {
+        message: userText,
+      });
+
+      const reply =
+        res?.data?.data?.reply || "I couldn't fetch a reply right now.";
+      setMessages((prev) => [...prev, { from: "assistant", text: reply }]);
+    } catch (error: any) {
+      const apiMsg = error?.response?.data?.message;
+      setMessages((prev) => [
+        ...prev,
+        {
+          from: "assistant",
+          text: apiMsg || "Sorry, something went wrong. Please try again.",
+        },
+      ]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
   const schemes = [
     {
       name: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
@@ -202,15 +251,76 @@ const GovernmentSchemes = () => {
                 Need Help with Applications?
               </h3>
               <p className="text-muted-foreground mb-4">
-                Our team can assist you with scheme applications, document
-                preparation, and eligibility verification.
+                Chat with our AI assistant to find the right scheme and get
+                official links.
               </p>
-              <Button
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                Contact Support
-              </Button>
+
+              <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  >
+                    Chat with AI
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[70vw] max-w-5xl">
+                  <DialogHeader>
+                    <DialogTitle>Scheme Assistant</DialogTitle>
+                    <DialogDescription>
+                      Ask about eligibility, deadlines, or get links to apply.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="max-h-64 overflow-y-auto space-y-3 pr-1">
+                    {messages.map((m, idx) => (
+                      <div
+                        key={idx}
+                        className={`rounded-lg p-3 text-sm ${
+                          m.from === "assistant"
+                            ? "bg-muted text-foreground"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                      >
+                        <span className="block font-semibold capitalize mb-1">
+                          {m.from === "assistant" ? "Assistant" : "You"}
+                        </span>
+                        <span className="block whitespace-pre-wrap leading-relaxed">
+                          {m.text}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="E.g. Need crop insurance in Maharashtra"
+                    />
+                    <Button
+                      onClick={sendMessage}
+                      className="gap-2"
+                      disabled={chatLoading}
+                    >
+                      {chatLoading ? "Sending..." : "Send"}
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <DialogFooter className="text-xs text-muted-foreground">
+                    Powered by OpenAI via backend. Keep questions brief for
+                    faster replies.
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
