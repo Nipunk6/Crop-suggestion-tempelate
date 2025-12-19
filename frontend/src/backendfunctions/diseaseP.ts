@@ -27,14 +27,15 @@
 
 import axios from "axios";
 
-// Optional: Define an interface for the expected API response for better type safety
-interface DiseaseResponse {
-  result: {
+// Expected ApiResponse shape from backend
+interface DiseaseApiResponse {
+  statusCode: number;
+  data: {
     disease: string;
-    info: any; // Or a more specific type if you know the structure of 'info'
-  };
+    info: string;
+  } | null;
   message: string;
-  // Add other properties from your API response here
+  success: boolean;
 }
 
 export class DiseasePrediction {
@@ -43,7 +44,7 @@ export class DiseasePrediction {
    * @param imageFile The image file selected by the user.
    * @returns A promise that resolves with the prediction data.
    */
-  async predictDisease(imageFile: File): Promise<DiseaseResponse> {
+  async predictDisease(imageFile: File): Promise<DiseaseApiResponse> {
     try {
       const formData = new FormData();
 
@@ -51,7 +52,7 @@ export class DiseasePrediction {
       formData.append("image", imageFile);
 
       // Tell Axios what kind of response data to expect
-      const response = await axios.post<DiseaseResponse>("/api/v1/disease/predict", formData, {
+      const response = await axios.post<DiseaseApiResponse>("/api/v1/disease/predict", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

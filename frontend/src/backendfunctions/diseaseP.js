@@ -10,7 +10,7 @@ export class DiseasePrediction {
         formData.append("image", imageFile);
       }
 
-      const response = await axios.post("/api/disease/predict", formData, {
+      const response = await axios.post("/api/v1/disease/predict", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

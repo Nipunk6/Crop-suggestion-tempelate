@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Upload, Camera, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, Camera, AlertCircle } from "lucide-react";
 import { DiseasePrediction } from "../backendfunctions/diseaseP";
 
 interface DiseaseDetectionProps {
@@ -42,13 +42,19 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
     requireAuth(async () => {
       setLoading(true);
       setError(null);
+      setAnalysis(null);
 
       try {
         // 👇 CALL THE METHOD FROM THE INSTANCE
         const response = await diseaseApi.predictDisease(imageFile);
-        setAnalysis(response.result);
+        if (!response?.data) {
+          setError(response?.message || "No analysis returned.");
+          return;
+        }
+        setAnalysis(response.data);
       } catch (err: any) {
-        setError(err.message || "Failed to analyze image. Please try again.");
+        const apiMsg = err?.response?.data?.message;
+        setError(apiMsg || err.message || "Failed to analyze image. Please try again.");
         console.error("Analysis Error:", err);
       } finally {
         setLoading(false);
@@ -64,8 +70,7 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
             Plant Disease Detection
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Upload a photo of your plant to get instant AI-powered disease
-            analysis and treatment recommendations.
+            Upload a photo of your plant to get AI-powered disease analysis and recommendations.
           </p>
         </div>
 
@@ -77,8 +82,7 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
                 Disease Analysis Tool
               </CardTitle>
               <CardDescription>
-                Take a clear photo of affected leaves or upload an existing
-                image
+                Take a clear photo of affected leaves or upload an existing image
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -99,12 +103,8 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
                       <div className="space-y-4">
                         <Upload className="w-12 h-12 text-muted-foreground mx-auto" />
                         <div>
-                          <p className="text-lg font-medium">
-                            Click to upload image
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Supports JPG, PNG up to 10MB
-                          </p>
+                          <p className="text-lg font-medium">Click to upload image</p>
+                          <p className="text-sm text-muted-foreground">Supports JPG, PNG up to 10MB</p>
                         </div>
                       </div>
                     )}
@@ -129,68 +129,49 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
 
                 {/* Results Section */}
                 <div className="space-y-4">
+                  {error && (
+                    <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-destructive" />
+                        <p className="text-sm text-destructive">{error}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {loading && (
+                    <div className="p-4 bg-muted/40 rounded-lg border border-muted/60 animate-pulse">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Analyzing image… this can take up to 3 minutes.
+                      </p>
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                        <div className="h-full w-3/4 bg-primary/70" />
+                      </div>
+                    </div>
+                  )}
+
                   {analysis ? (
                     <div className="space-y-4">
                       <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-5 h-5 text-destructive" />
-                          <h3 className="font-semibold text-destructive">
-                            Disease Detected
-                          </h3>
+                          <h3 className="font-semibold text-destructive">Disease Detected</h3>
                         </div>
-                        <p className="text-lg font-medium">
-                          {analysis.disease}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Confidence: {analysis.confidence}% | Severity:{" "}
-                          {analysis.severity}
-                        </p>
+                        <p className="text-lg font-medium">{analysis.disease}</p>
                       </div>
 
                       <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                        <h4 className="font-semibold text-primary mb-3">
-                          Treatment Recommendations:
-                        </h4>
-                        <ul className="space-y-2">
-                          {analysis.treatment.map(
-                            (step: string, index: number) => (
-                              <li
-                                key={index}
-                                className="flex items-start gap-2"
-                              >
-                                <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                                <span className="text-sm">{step}</span>
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-
-                      <div className="p-4 bg-success/10 rounded-lg border border-success/20">
-                        <h4 className="font-semibold text-success mb-3">
-                          Prevention Tips:
-                        </h4>
-                        <ul className="space-y-2">
-                          {analysis.prevention.map(
-                            (tip: string, index: number) => (
-                              <li
-                                key={index}
-                                className="flex items-start gap-2"
-                              >
-                                <CheckCircle className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                                <span className="text-sm">{tip}</span>
-                              </li>
-                            )
-                          )}
-                        </ul>
+                        <h4 className="font-semibold text-primary mb-3">AI Analysis & Recommendations:</h4>
+                        <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                          {analysis.info || "No additional details returned."}
+                        </div>
                       </div>
                     </div>
-                  ) : (
+                  ) : !loading ? (
                     <div className="text-center py-12 text-muted-foreground">
                       <Camera className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>Upload an image to start plant health analysis</p>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </CardContent>
