@@ -54,7 +54,9 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
         setAnalysis(response.data);
       } catch (err: any) {
         const apiMsg = err?.response?.data?.message;
-        setError(apiMsg || err.message || "Failed to analyze image. Please try again.");
+        setError(
+          apiMsg || err.message || "Failed to analyze image. Please try again."
+        );
         console.error("Analysis Error:", err);
       } finally {
         setLoading(false);
@@ -70,7 +72,8 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
             Plant Disease Detection
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Upload a photo of your plant to get AI-powered disease analysis and recommendations.
+            Upload a photo of your plant to get AI-powered disease analysis and
+            recommendations.
           </p>
         </div>
 
@@ -82,7 +85,8 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
                 Disease Analysis Tool
               </CardTitle>
               <CardDescription>
-                Take a clear photo of affected leaves or upload an existing image
+                Take a clear photo of affected leaves or upload an existing
+                image
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -103,8 +107,12 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
                       <div className="space-y-4">
                         <Upload className="w-12 h-12 text-muted-foreground mx-auto" />
                         <div>
-                          <p className="text-lg font-medium">Click to upload image</p>
-                          <p className="text-sm text-muted-foreground">Supports JPG, PNG up to 10MB</p>
+                          <p className="text-lg font-medium">
+                            Click to upload image
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Supports JPG, PNG up to 10MB
+                          </p>
                         </div>
                       </div>
                     )}
@@ -154,13 +162,19 @@ const DiseaseDetection = ({ requireAuth }: DiseaseDetectionProps) => {
                       <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-5 h-5 text-destructive" />
-                          <h3 className="font-semibold text-destructive">Disease Detected</h3>
+                          <h3 className="font-semibold text-destructive">
+                            Disease Detected
+                          </h3>
                         </div>
-                        <p className="text-lg font-medium">{analysis.disease}</p>
+                        <p className="text-lg font-medium">
+                          {analysis.disease}
+                        </p>
                       </div>
 
                       <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-                        <h4 className="font-semibold text-primary mb-3">AI Analysis & Recommendations:</h4>
+                        <h4 className="font-semibold text-primary mb-3">
+                          AI Analysis & Recommendations:
+                        </h4>
                         <div className="text-sm whitespace-pre-wrap leading-relaxed">
                           {analysis.info || "No additional details returned."}
                         </div>

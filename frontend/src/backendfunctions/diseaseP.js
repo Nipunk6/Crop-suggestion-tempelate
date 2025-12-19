@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios from "axios";
 
 export class DiseasePrediction {
   async predictDisease(imageFile) {
@@ -24,5 +24,3 @@ export class DiseasePrediction {
     }
   }
 }
-
-      
