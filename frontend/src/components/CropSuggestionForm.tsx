@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,203 +16,346 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Thermometer, Droplets, Gauge } from "lucide-react";
+import { MapPin, Thermometer, Droplets, Leaf } from "lucide-react";
 import { CropPrediction } from "@/backendfunctions/cropP";
+
 interface CropFormProps {
   requireAuth: (action: () => void) => void;
 }
+
+
+
+
+
+
+
+const OPEN_WEATHER_DEMO_KEY = "69db702a07e0431609de63e355cf3731";
+
 const CropSuggestionForm = ({ requireAuth }: CropFormProps) => {
   const [formData, setFormData] = useState({
     location: "",
-    soilType: "",
-    rainfall: "",
+    latitude: "",
+    longitude: "",
     temperature: "",
-    ph: "",
+    humidity: "",
+    soilType: "",
+    soilMoisture: "",
     area: "",
+    nitrogen: "",
+    phosphorus: "",
+    potassium: "",
   });
 
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+ const [cropInfo, setCropInfo] = useState<string | null>(null);
+
+
+  const buildPayloadForBackend = () => {
+  return {
+    temperature: Number(formData.temperature),
+    humidity: Number(formData.humidity),
+    moisture: Number(formData.soilMoisture),
+    soil_type: formData.soilType,
+
+    
+    ...(formData.nitrogen && { nitrogen: Number(formData.nitrogen) }),
+    ...(formData.phosphorus && { phosphorus: Number(formData.phosphorus) }),
+    ...(formData.potassium && { potassium: Number(formData.potassium) }),
+  };
+};
+
+
+  const [loadingWeather, setLoadingWeather] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    requireAuth(async () => {
-      setLoading(true);
+  
+  const getBrowserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation not supported");
+      return;
+    }
 
-      try {
-        const predictor = new CropPrediction(); // ✅ Create instance
-        const response = await predictor.predictCrop(formData); // ✅ Call method
+    setLoadingWeather(true);
 
-        // response = { predictedCrop: "Wheat", confidenceScore: 0.92 }
-        setSuggestions([response.predictedCrop]); // ✅ Example: store in array to display
-      } catch (error) {
-        console.error("Error fetching crop prediction:", error);
-      } finally {
-        setLoading(false);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        setFormData((prev) => ({
+          ...prev,
+          latitude: lat.toString(),
+          longitude: lon.toString(),
+          location: "Current Location",
+        }));
+      },
+      () => {
+        setLocationError("Location permission denied");
+        setLoadingWeather(false);
       }
-    });
+    );
   };
 
+  useEffect(() => {
+  if (!formData.latitude || !formData.longitude) return;
+
+  const fetchWeather = async () => {
+    try {
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${formData.latitude}&lon=${formData.longitude}&units=metric&appid=${OPEN_WEATHER_DEMO_KEY}`
+      );
+
+      const data = await res.json();
+
+      // ❗ IMPORTANT: validate response
+      if (!res.ok || !data.main) {
+        console.error("Weather API error:", data);
+        setLocationError("Unable to fetch weather data");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        temperature: data.main.temp.toString(),
+        humidity: data.main.humidity.toString(),
+      }));
+    } catch (err) {
+      console.error("Weather fetch failed", err);
+      setLocationError("Weather service unavailable");
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  fetchWeather();
+}, [formData.latitude, formData.longitude]);
+
+
+ 
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  requireAuth(async () => {
+    setLoading(true);
+    try {
+      const predictor = new CropPrediction();
+      const payload = buildPayloadForBackend();
+
+      const response = await predictor.predictCrop(payload);
+
+      const cropResult = response.data?.crop;
+      const info = response.data?.info;
+
+      if (Array.isArray(cropResult)) {
+        setSuggestions(cropResult);
+      } else if (cropResult) {
+        setSuggestions([cropResult]);
+      } else {
+        setSuggestions([]);
+      }
+
+      setCropInfo(info ?? null);
+    } catch (error) {
+      console.error("Prediction error", error);
+    } finally {
+      setLoading(false);
+    }
+  });
+};
+
+
   return (
-    <section id="crops" className="py-16 bg-gradient-sky">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-            Smart Crop Suggestions
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Get personalized crop recommendations based on your land conditions,
-            climate, and soil analysis.
-          </p>
-        </div>
+    <section className="py-16">
+      <div className="max-w-4xl mx-auto px-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Leaf className="w-5 h-5" />
+              Smart Crop Suggestions
+            </CardTitle>
+            <CardDescription>
+              Weather data is automatically fetched using your current location
+            </CardDescription>
+          </CardHeader>
 
-        <div className="max-w-4xl mx-auto">
-          <Card className="shadow-earth">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                Land Analysis Form
-              </CardTitle>
-              <CardDescription>
-                Provide details about your farmland to get accurate crop
-                suggestions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={handleSubmit}
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+          <CardContent>
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label>Location</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={getBrowserLocation}
+                  className="w-full flex items-center gap-2"
+                  disabled={loadingWeather}
+                >
+                  <MapPin className="w-4 h-4" />
+                  {loadingWeather
+                    ? "Detecting location..."
+                    : "Use My Location"}
+                </Button>
+                {locationError && (
+                  <p className="text-sm text-red-500">{locationError}</p>
+                )}
+              </div>
+
+              
+              <div className="space-y-2">
+                <Label>Farm Area (acres)</Label>
+                <Input
+                  type="number"
+                  required
+                  value={formData.area}
+                  onChange={(e) =>
+                    setFormData({ ...formData, area: e.target.value })
+                  }
+                />
+              </div>
+
+             
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Thermometer className="w-4 h-4" />
+                  Temperature (°C)
+                </Label>
+                <Input value={formData.temperature} 
+                        type="number"
+                        onChange={(e) =>
+                    setFormData({ ...formData, temperature: e.target.value })
+                         }
+                 />
+              </div>
+
+              
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Droplets className="w-4 h-4" />
+                  Humidity (%)
+                </Label>
+                <Input value={formData.humidity}
+                type="number"
+                        onChange={(e) =>
+                    setFormData({ ...formData, humidity: e.target.value })
+                        }
+                        />
+              </div>
+
+            
+              <div className="space-y-2">
+                <Label>Soil Type *</Label>
+                <Select
+                  required
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, soilType: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select soil type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="clay">Clay</SelectItem>
+                    <SelectItem value="sandy">Sandy</SelectItem>
+                    <SelectItem value="loamy">Loamy</SelectItem>
+                    <SelectItem value="silty">Silty</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+            
+              <div className="space-y-2">
+                <Label>Soil Moisture (%) *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  required
+                  value={formData.soilMoisture}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      soilMoisture: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+             
+              <div className="md:col-span-2 mt-6 border-t pt-4">
+                <h3 className="font-semibold mb-4">
+                  🧪 If Soil Test Available (Optional)
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
-                    id="location"
-                    placeholder="Enter your city/district"
-                    value={formData.location}
+                    placeholder="Nitrogen (N)"
+                    value={formData.nitrogen}
                     onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
+                      setFormData({ ...formData, nitrogen: e.target.value })
                     }
-                    required
+                  />
+                  <Input
+                    placeholder="Phosphorus (P)"
+                    value={formData.phosphorus}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phosphorus: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Potassium (K)"
+                    value={formData.potassium}
+                    onChange={(e) =>
+                      setFormData({ ...formData, potassium: e.target.value })
+                    }
                   />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="area">Farm Area (acres)</Label>
-                  <Input
-                    id="area"
-                    type="number"
-                    placeholder="Enter area in acres"
-                    value={formData.area}
-                    onChange={(e) =>
-                      setFormData({ ...formData, area: e.target.value })
-                    }
-                    required
-                  />
-                </div>
+             
+              <div className="md:col-span-2">
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Analyzing..." : "Get Crop Suggestions"}
+                </Button>
+              </div>
+            </form>
 
-                <div className="space-y-2">
-                  <Label htmlFor="soilType">Soil Type</Label>
-                  <Select
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, soilType: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select soil type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="clay">Clay Soil</SelectItem>
-                      <SelectItem value="sandy">Sandy Soil</SelectItem>
-                      <SelectItem value="loamy">Loamy Soil</SelectItem>
-                      <SelectItem value="silty">Silty Soil</SelectItem>
-                      <SelectItem value="rocky">Rocky Soil</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+           {suggestions.length > 0 && (
+  <div className="mt-8 space-y-6">
+    {/* Crop wale ka response */}
+    <div className="p-5 border rounded-lg bg-green-50">
+      <h4 className="text-lg font-semibold text-green-800 mb-2">
+        🌱 Recommended Crop
+      </h4>
+      <ul className="list-disc list-inside text-green-900">
+        {suggestions.map((crop, index) => (
+          <li key={index} className="font-medium">
+            {crop}
+          </li>
+        ))}
+      </ul>
+    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="ph" className="flex items-center gap-2">
-                    <Gauge className="w-4 h-4" />
-                    Soil pH Level
-                  </Label>
-                  <Input
-                    id="ph"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="14"
-                    placeholder="e.g., 6.5"
-                    value={formData.ph}
-                    onChange={(e) =>
-                      setFormData({ ...formData, ph: e.target.value })
-                    }
-                  />
-                </div>
+    {/* Gemini ka response added */}
+    {cropInfo && (
+      <div className="p-5 border rounded-lg bg-blue-50">
+        <h4 className="text-lg font-semibold text-blue-800 mb-3">
+          🤖 AI Explanation
+        </h4>
 
-                <div className="space-y-2">
-                  <Label htmlFor="rainfall" className="flex items-center gap-2">
-                    <Droplets className="w-4 h-4" />
-                    Annual Rainfall (mm)
-                  </Label>
-                  <Input
-                    id="rainfall"
-                    type="number"
-                    placeholder="e.g., 800"
-                    value={formData.rainfall}
-                    onChange={(e) =>
-                      setFormData({ ...formData, rainfall: e.target.value })
-                    }
-                  />
-                </div>
+        <p className="text-sm leading-relaxed text-blue-900 whitespace-pre-line">
+          {cropInfo}
+        </p>
+      </div>
+    )}
+  </div>
+)}
 
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="temperature"
-                    className="flex items-center gap-2"
-                  >
-                    <Thermometer className="w-4 h-4" />
-                    Avg. Temperature (°C)
-                  </Label>
-                  <Input
-                    id="temperature"
-                    type="number"
-                    placeholder="e.g., 25"
-                    value={formData.temperature}
-                    onChange={(e) =>
-                      setFormData({ ...formData, temperature: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-primary hover:shadow-glow"
-                    disabled={loading}
-                  >
-                    {loading ? "Analyzing..." : "Get Crop Suggestions"}
-                  </Button>
-                </div>
-              </form>
-
-              {suggestions.length > 0 && (
-                <div className="mt-8 p-6 bg-success/10 rounded-lg border border-success/20">
-                  <h3 className="text-lg font-semibold text-success mb-4">
-                    Recommended Crops for Your Land:
-                  </h3>
-                  <ul className="space-y-2">
-                    {suggestions.map((suggestion, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="text-success">•</span>
-                        <span>{suggestion}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );
