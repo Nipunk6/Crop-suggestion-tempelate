@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 import LoginModal from "./components/LoginModal";
 import Navigation from "./components/Navigation";
@@ -45,6 +46,7 @@ const App = () => {
 
           <Routes>
             <Route path="/" element={<Index requireAuth={requireAuth} />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
 

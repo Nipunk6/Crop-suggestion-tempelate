@@ -2,7 +2,8 @@
 import axios from "axios";
 
 const BASE_PROXY = "/api/v1/user"; // use Vite proxy in dev
-const BASE_FALLBACK = import.meta.env.VITE_API_URL || "http://localhost:7007/api/v1/user";
+const BASE_FALLBACK =
+  import.meta.env.VITE_API_URL || "http://localhost:7007/api/v1/user";
 
 class ApiService {
   constructor() {
@@ -131,7 +132,32 @@ class ApiService {
 
   async getUserProfile(email) {
     try {
-      const response = await this.api.get(`/users/${encodeURIComponent(email)}`);
+      const response = await this.api.get(
+        `/users/${encodeURIComponent(email)}`
+      );
+      return response.data;
+    } catch (error) {
+      if (error?.response?.data) throw error.response.data;
+      throw { message: error.message || "Network or request error" };
+    }
+  }
+
+  async forgotPassword(email) {
+    try {
+      const response = await this.api.post("/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      if (error?.response?.data) throw error.response.data;
+      throw { message: error.message || "Network or request error" };
+    }
+  }
+
+  async resetPassword(token, newPassword) {
+    try {
+      const response = await this.api.post("/reset-password", {
+        token,
+        newPassword,
+      });
       return response.data;
     } catch (error) {
       if (error?.response?.data) throw error.response.data;

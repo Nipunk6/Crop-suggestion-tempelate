@@ -5,6 +5,8 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 // import { deleteFronCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/apiresponse.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "../utils/email.js";
 
 const generateRefreshAndAccessToken = async function (userId) {
   if (!userId) {
@@ -245,6 +247,64 @@ const changeAvatar = asynchandler(async function (req, res) {
   return res.status(200).json(new ApiResponse(200, user, "updated avatar"));
 });
 
+// Forgot password: generate token, store hashed, send email
+const forgotPassword = asynchandler(async function (req, res) {
+  const { email } = req.body;
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 15 * 60 * 1000;
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    await sendPasswordResetEmail(email, resetToken);
+  } catch (err) {
+    // cleanup if email fails
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    throw new ApiError(500, "Failed to send reset email");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password reset link sent"));
+});
+
+// Reset password: verify token and set new password
+const resetPassword = asynchandler(async function (req, res) {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword) {
+    throw new ApiError(400, "Token and new password are required");
+  }
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    throw new ApiError(410, "Invalid or expired token");
+  }
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password reset successful"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -254,4 +314,6 @@ export {
   changeAvatar,
   changeAccountDetails,
   getCurrentUser,
+  forgotPassword,
+  resetPassword,
 };
