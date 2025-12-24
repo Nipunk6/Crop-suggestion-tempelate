@@ -7,6 +7,7 @@ import { ApiResponse } from "../utils/apiresponse.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "../utils/email.js";
+import { History } from "../models/history.model.js";
 
 const generateRefreshAndAccessToken = async function (userId) {
   if (!userId) {
@@ -305,6 +306,27 @@ const resetPassword = asynchandler(async function (req, res) {
     .json(new ApiResponse(200, {}, "Password reset successful"));
 });
 
+
+
+
+const getUserHistory = asynchandler(async function (req, res) {
+  const userId = req.user._id;
+
+ 
+  const history = await History.find({ user: userId }).sort({ createdAt: -1 });
+
+  if (!history) {
+    
+    throw new ApiError(404, "No history found for this user");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, history, "User history fetched successfully"));
+});
+
+
+
 export {
   registerUser,
   loginUser,
@@ -316,4 +338,5 @@ export {
   getCurrentUser,
   forgotPassword,
   resetPassword,
+  getUserHistory
 };

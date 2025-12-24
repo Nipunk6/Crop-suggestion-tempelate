@@ -8,11 +8,12 @@ import {
   MessageCircle,
   LogIn,
   LogOut,
+  User, // TODO: Import User icon
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom"; // TODO: Import Link for navigation
 
-// 1. Define the props we expect from App.tsx
 interface NavigationProps {
   isAuthenticated: boolean;
   onOpenLogin: () => void;
@@ -20,7 +21,6 @@ interface NavigationProps {
   requireAuth: (action: () => void) => void;
 }
 
-// 2. Accept these props in the component function
 const Navigation = ({
   isAuthenticated,
   onOpenLogin,
@@ -51,12 +51,12 @@ const Navigation = ({
     <nav className="bg-gradient-primary shadow-earth sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2"> {/* TODO: Changed div to Link for home */}
             <Leaf className="w-8 h-8 text-primary-foreground" />
             <span className="text-xl font-bold text-primary-foreground">
               FarmTech
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
@@ -72,17 +72,18 @@ const Navigation = ({
               </a>
             ))}
 
-            {/* ADDED: Login/Logout Button for Desktop */}
+            {/* TODO: Switched Logout Button with Profile Link */}
             {isAuthenticated ? (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="bg-red-500 hover:bg-red-600 text-white ml-4"
-                onClick={onLogout}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+              <Link to="/profile">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="bg-green-700 text-white hover:bg-green-800 ml-4 border border-white/20"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Profile
+                </Button>
+              </Link>
             ) : (
               <Button
                 variant="secondary"
@@ -125,19 +126,15 @@ const Navigation = ({
               </a>
             ))}
 
-            {/* ADDED: Login/Logout Button for Mobile */}
+            {/* TODO: Switched Mobile Logout Button with Profile Link */}
             <div className="pt-4 mt-2 border-t border-white/20">
               {isAuthenticated ? (
-                <Button
-                  className="w-full bg-red-500 hover:bg-red-600 text-white justify-start"
-                  onClick={() => {
-                    onLogout();
-                    setIsOpen(false);
-                  }}
-                >
-                  <LogOut className="w-5 h-5 mr-3" />
-                  Logout
-                </Button>
+                <Link to="/profile" onClick={() => setIsOpen(false)}>
+                  <Button className="w-full bg-green-700 hover:bg-green-800 text-white justify-start">
+                    <User className="w-5 h-5 mr-3" />
+                    My Profile
+                  </Button>
+                </Link>
               ) : (
                 <Button
                   className="w-full bg-white text-green-700 hover:bg-gray-100 justify-start"

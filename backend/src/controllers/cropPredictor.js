@@ -2,6 +2,8 @@ import { ApiResponse } from "../utils/apiresponse.js";
 import { asynchandler } from "../utils/AsyncHandler.js";
 import axios from "axios";
 import { gemini } from "./geminiapi.js";
+import { History } from "../models/history.model.js";
+import { ApiError } from "../utils/Apierror.js";
 
 const ML_API_WITH_SOIL =
   "https://crop-pred-with-nutri.onrender.com/predict";
@@ -93,7 +95,18 @@ const cropPredictor = asynchandler(async (req, res) => {
     }
 
     const geminiResponse = await gemini(prediction);
+    try {
+       const history= await History.create({
+            user:req.user._id,
+            type:"crop-suggestion",
+            cropName:prediction,
+            confidence:87
+      })
 
+    } catch (error) {
+      throw new ApiError(409,"failed to store history")
+    }
+   
     return res.status(200).json(
       new ApiResponse(
         200,

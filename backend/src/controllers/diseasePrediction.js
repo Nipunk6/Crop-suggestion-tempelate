@@ -5,6 +5,8 @@ import { gemini,gemini2 } from "./geminiapi.js";
 import FormData from "form-data";  
 import fs from "fs/promises";  
 import { uploadOnCloudinary } from "../utils/cloudinary.js"; 
+import { History } from "../models/history.model.js";
+import { ApiError } from "../utils/Apierror.js";
 
 const plantDiseaseDetector = asynchandler(async (req, res) => {
 
@@ -39,6 +41,18 @@ const plantDiseaseDetector = asynchandler(async (req, res) => {
         "disease": detectedDisease, 
         "info": geminiResponse 
       }
+       try {
+             const history= await History.create({
+                  user:req.user._id,
+                  type:"disease-detection",
+                  image:imageBuffer.url,
+                  diseaseName: detectedDisease,
+                  confidence:82
+            })
+      
+          } catch (error) {
+            throw new ApiError(409,"failed to store history")
+          }
 
       return res.status(200).json(new ApiResponse(200, result, "Plant disease detection successful"));
 

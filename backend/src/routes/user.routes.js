@@ -9,6 +9,7 @@ import {
   getCurrentUser,
   forgotPassword,
   resetPassword,
+  getUserHistory,
 } from "../controllers/user.controller.js";
 
 import { Router } from "express";
@@ -37,5 +38,9 @@ router
   .patch(verifyJwt, upload.single("avatar"), changeAvatar);
 
 router.route("/logout").post(verifyJwt, userLogOut);
+
+
+router.route("/history").get(verifyJwt, getUserHistory);
+
 
 export default router;

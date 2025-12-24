@@ -8,9 +8,10 @@
 
 import { Router } from "express";
 import cropPredictor from "../controllers/cropPredictor.js";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/predict").post(cropPredictor);
+router.route("/predict").post(verifyJwt ,cropPredictor);
 
 export default router;

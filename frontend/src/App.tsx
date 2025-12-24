@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"; // Added Navigate
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -11,40 +11,48 @@ import ResetPassword from "./pages/ResetPassword";
 
 import LoginModal from "./components/LoginModal";
 import Navigation from "./components/Navigation";
+import ProfilePage from "./components/ProfilePage";
 
-import api from "@/api/axios"; // ✅ shared axios instance
+import api from "@/api/axios";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false); // ⭐ critical
+  // 1. Add state to store user data
+  const [user, setUser] = useState(null); 
+  const [authChecked, setAuthChecked] = useState(false);
 
-  
- // Inside App.tsx
-
-useEffect(() => {
-  const restoreSession = async () => {
+  // Helper function to fetch user data
+  const fetchUser = async () => {
     try {
-      // 1. DO NOT call refresh-access-token directly here.
-      // 2. Instead, try to fetch the user.
-      // If this returns 401, the Axios interceptor handles the refresh automatically.
-      await api.get("/user/current-user"); 
-      
+      const response = await api.get("/user/current-user");
+      // Assuming your API returns { data: userObject } based on previous responses
+      setUser(response.data.data); 
       setIsAuthenticated(true);
     } catch (error) {
-      // If we are here, it means the refresh failed (or user was never logged in)
-      console.log("Session restore failed", error);
+      console.log("Failed to fetch user", error);
+      setUser(null);
       setIsAuthenticated(false);
-    } finally {
-      setAuthChecked(true);
     }
   };
 
-  restoreSession();
-}, []);
-  
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        await fetchUser(); // Reuse the fetch logic
+      } catch (error) {
+        console.log("Session restore failed", error);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+
+    restoreSession();
+  }, []);
+
   const requireAuth = (action: () => void) => {
     if (isAuthenticated) {
       action();
@@ -53,9 +61,20 @@ useEffect(() => {
     }
   };
 
-  // ⛔ Prevent UI flicker before auth check
+  // 2. Define a shared logout function
+  const handleLogout = async () => {
+    try {
+      await api.post("/user/logout");
+    } finally {
+      setIsAuthenticated(false);
+      setUser(null);
+      // Optional: Redirect to home after logout if needed
+      // window.location.href = "/"; 
+    }
+  };
+
   if (!authChecked) {
-    return null; // or loader/spinner if you want
+    return null; // Or a loading spinner
   }
 
   return (
@@ -68,13 +87,7 @@ useEffect(() => {
           <Navigation
             isAuthenticated={isAuthenticated}
             onOpenLogin={() => setIsModalOpen(true)}
-            onLogout={async () => {
-              try {
-                await api.post("/user/logout");
-              } finally {
-                setIsAuthenticated(false);
-              }
-            }}
+            onLogout={handleLogout} // Pass the shared function
             requireAuth={requireAuth}
           />
 
@@ -84,6 +97,19 @@ useEffect(() => {
               path="/reset-password/:token"
               element={<ResetPassword />}
             />
+            
+            {/* 3. Pass the required props to ProfilePage */}
+            <Route 
+              path="/profile" 
+              element={
+                isAuthenticated ? (
+                  <ProfilePage user={user} onLogout={handleLogout} />
+                ) : (
+                  <Navigate to="/" replace /> 
+                )
+              } 
+            />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
 
@@ -93,6 +119,7 @@ useEffect(() => {
             onLoginSuccess={() => {
               setIsAuthenticated(true);
               setIsModalOpen(false);
+              fetchUser(); // 4. Fetch user data immediately after login
             }}
           />
         </BrowserRouter>

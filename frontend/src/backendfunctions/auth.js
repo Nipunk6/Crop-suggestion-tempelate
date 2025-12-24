@@ -49,6 +49,10 @@ class ApiService {
     );
     return res.data;
   }
+  async getUserHistory() {
+    const res = await this.api.get("/user/history");
+    return res.data;
+  }
 
   async changeAvatar(formData) {
     const res = await this.api.patch(
