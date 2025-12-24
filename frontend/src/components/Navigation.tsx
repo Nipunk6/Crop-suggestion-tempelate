@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Shield,
   FileText,
+  MessageCircle,
   LogIn,
   LogOut,
 } from "lucide-react";
@@ -31,8 +32,20 @@ const Navigation = ({
     { name: "Crop Suggestions", icon: TrendingUp, href: "#crops" },
     { name: "Disease Detection", icon: Leaf, href: "#disease" },
     { name: "Government Schemes", icon: Shield, href: "#schemes" },
-    { name: "Resources", icon: FileText, href: "#resources" },
+    { name: "Support", icon: MessageCircle, href: "#support" },
   ];
+
+  const handleSmoothScroll = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    e.preventDefault();
+    const targetId = href.replace("#", "");
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <nav className="bg-gradient-primary shadow-earth sticky top-0 z-50">
@@ -51,6 +64,7 @@ const Navigation = ({
               <a
                 key={item.name}
                 href={item.href}
+                onClick={(e) => handleSmoothScroll(e, item.href)}
                 className="flex items-center space-x-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
               >
                 <item.icon className="w-4 h-4" />
@@ -100,8 +114,11 @@ const Navigation = ({
               <a
                 key={item.name}
                 href={item.href}
+                onClick={(e) => {
+                  handleSmoothScroll(e, item.href);
+                  setIsOpen(false);
+                }}
                 className="flex items-center space-x-3 py-3 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
               >
                 <item.icon className="w-5 h-5" />
                 <span>{item.name}</span>

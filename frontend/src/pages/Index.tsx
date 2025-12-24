@@ -122,10 +122,10 @@ const Index = ({ requireAuth }: IndexProps) => {
                 </li>
                 <li>
                   <a
-                    href="#"
+                    href="#support"
                     className="hover:text-primary-foreground transition-colors"
                   >
-                    Weather Forecast
+                    Support
                   </a>
                 </li>
               </ul>
@@ -136,7 +136,7 @@ const Index = ({ requireAuth }: IndexProps) => {
               <div className="space-y-2 text-primary-foreground/80">
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <span>+91 98765 43210</span>
+                  <span>+91 98765 432XX</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />

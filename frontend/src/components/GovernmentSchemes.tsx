@@ -244,7 +244,7 @@ const GovernmentSchemes = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <div id="support" className="text-center mt-12">
           <Card className="max-w-2xl mx-auto bg-primary/5 border-primary/20">
             <CardContent className="p-6">
               <h3 className="text-xl font-semibold text-primary mb-3">

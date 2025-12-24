@@ -166,7 +166,7 @@ const CropSuggestionForm = ({ requireAuth }: CropFormProps) => {
 
 
   return (
-    <section className="py-16">
+    <section id="crops" className="py-16">
       <div className="max-w-4xl mx-auto px-4">
         <Card>
           <CardHeader>
