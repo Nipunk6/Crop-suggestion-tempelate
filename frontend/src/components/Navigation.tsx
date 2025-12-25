@@ -51,10 +51,12 @@ const Navigation = ({
     <nav className="bg-gradient-primary shadow-earth sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2"> {/* TODO: Changed div to Link for home */}
+          <Link to="/" className="flex items-center space-x-2">
+            {" "}
+            {/* TODO: Changed div to Link for home */}
             <Leaf className="w-8 h-8 text-primary-foreground" />
             <span className="text-xl font-bold text-primary-foreground">
-              FarmTech
+              AgriHelp
             </span>
           </Link>
 

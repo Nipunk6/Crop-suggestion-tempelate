@@ -86,7 +86,7 @@ const Index = ({ requireAuth }: IndexProps) => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-xl font-semibold mb-4">FarmTech</h3>
+              <h3 className="text-xl font-semibold mb-4">AgriHelp</h3>
               <p className="text-primary-foreground/80">
                 Empowering farmers with smart technology for sustainable
                 agriculture and better yields.
@@ -140,7 +140,7 @@ const Index = ({ requireAuth }: IndexProps) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  <span>support@farmtech.com</span>
+                  <span>support@agrihelp.com</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
@@ -152,7 +152,7 @@ const Index = ({ requireAuth }: IndexProps) => {
 
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-primary-foreground/60">
             <p>
-              &copy; 2024 FarmTech. All rights reserved. Built for farmers, by
+              &copy; 2024 AgriHelp. All rights reserved. Built for farmers, by
               farmers.
             </p>
           </div>

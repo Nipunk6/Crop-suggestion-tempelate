@@ -109,7 +109,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
               ? "Enter your email to receive a reset link"
               : isLoginView
                 ? "Login to access smart farming tools"
-                : "Join FarmTech today"}
+                : "Join AgriHelp today"}
           </p>
         </div>
 

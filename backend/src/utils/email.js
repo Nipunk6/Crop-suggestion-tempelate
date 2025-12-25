@@ -20,7 +20,7 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "FarmTech - Password Reset",
+    subject: "AgriHelp - Password Reset",
     html: `
       <p>We received a request to reset your password.</p>
       <p>This link expires in 15 minutes.</p>
