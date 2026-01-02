@@ -142,5 +142,3 @@ This project is developed as a group project with the goal of using technology t
 
 ---
 
-## 📜 License
-This project is licensed under the MIT License.
