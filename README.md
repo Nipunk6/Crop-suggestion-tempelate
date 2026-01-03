@@ -39,7 +39,7 @@ Agri Help is a full-stack web platform designed to empower Indian farmers with d
 
 ---
 
-### 🏛 Government Schemes Portal
+### 🏛 Government-Schemes Portal
 - Dedicated section listing useful government schemes for farmers
 - Schemes displayed based on farmer profile, land size, and location
 - Helps farmers discover benefits and subsidies they are eligible for
