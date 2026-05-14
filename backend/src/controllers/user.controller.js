@@ -9,6 +9,13 @@ import crypto from "crypto";
 import { sendPasswordResetEmail } from "../utils/email.js";
 import { History } from "../models/history.model.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+};
+
 const generateRefreshAndAccessToken = async function (userId) {
   if (!userId) {
     throw new ApiError(404, "UserId not found");
@@ -114,15 +121,10 @@ const loginUser = asynchandler(async function (req, res) {
   let loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(new ApiResponse(200, loggedInUser, "User logged in successfully"));
 });
 const refreshAccessToken = asynchandler(async function (req, res) {
@@ -146,17 +148,13 @@ const refreshAccessToken = asynchandler(async function (req, res) {
   if (oldRefreshToken !== user?.refreshToken) {
     throw new ApiError(409, "refresh token used or expired");
   }
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
   const { accessToken, refreshToken } = await generateRefreshAndAccessToken(
     user._id
   );
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(new ApiResponse(200, { accessToken, refreshToken }, "access token"));
 });
 const userLogOut = asynchandler(async function (req, res) {
@@ -168,14 +166,10 @@ const userLogOut = asynchandler(async function (req, res) {
     },
     { new: true }
   );
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
   return res
     .status(201)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200, {}, "User logged Out"));
 });
 
@@ -306,17 +300,11 @@ const resetPassword = asynchandler(async function (req, res) {
     .json(new ApiResponse(200, {}, "Password reset successful"));
 });
 
-
-
-
 const getUserHistory = asynchandler(async function (req, res) {
   const userId = req.user._id;
-
- 
   const history = await History.find({ user: userId }).sort({ createdAt: -1 });
 
   if (!history) {
-    
     throw new ApiError(404, "No history found for this user");
   }
 
@@ -324,8 +312,6 @@ const getUserHistory = asynchandler(async function (req, res) {
     .status(200)
     .json(new ApiResponse(200, history, "User history fetched successfully"));
 });
-
-
 
 export {
   registerUser,
