@@ -1,4 +1,4 @@
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../utils/Apierror.js";
 import OpenAI from "openai";
 
 // Ensure API key exists
